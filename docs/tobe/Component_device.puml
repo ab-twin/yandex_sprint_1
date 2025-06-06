@@ -1,0 +1,29 @@
+@startuml
+title SmartHome Component Device Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(device_service, "Device Service", "Python", "Управление датчиками и исполнительными устройствами") {
+    Component(device_manager, "Device Manager", "Python", "Управление устройствами")
+    Component(protocol_adapter, "Protocol Adapter", "Python", "Адаптация протоколов")
+    Component(command_processor, "Command Processor", "Python", "Обработка команд")
+    Component(telemetry_processor, "Telemetry Processor", "Python", "Обработка телеметрии")
+}
+
+Container(api_gateway, "API Gateway", "Node.js/Express", "Единая точка входа для всех запросов")
+Container(db, "Database", "PostgreSQL", "Хранение данных устройств и показаний")
+Container(message_broker, "Message Broker", "MQTT", "Асинхронная коммуникация с устройствами")
+
+Rel(api_gateway, device_manager, "Проверяет доступ")
+Rel(api_gateway, command_processor, "Передает команды")
+Rel(command_processor, protocol_adapter, "Отправляет команды", "")
+Rel(protocol_adapter, message_broker, "Отправляет команды", "")
+
+Rel(device_manager, db, "Обновление/Добавление/Удаление устройств", "")
+Rel(telemetry_processor, db, "Передает данные", "Event")
+Rel(db, device_manager, "Обновляет состояние", "")
+
+
+@enduml
