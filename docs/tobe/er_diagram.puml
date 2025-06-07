@@ -1,0 +1,104 @@
+@startuml
+title ER-диаграмма системы умного дома
+
+skinparam linetype ortho
+
+entity "User" as user {
+  *id : uuid <<PK>>
+  --
+  *email : varchar(255)
+  *password_hash : varchar(255)
+  full_name : varchar(100)
+  phone : varchar(20)
+  created_at : timestamp
+  last_login : timestamp
+  is_active : boolean
+}
+
+entity "House" as house {
+  *id : uuid <<PK>>
+  --
+  *owner_id : uuid <<FK>>
+  *name : varchar(100)
+  address : text
+  timezone : varchar(50)
+  created_at : timestamp
+}
+
+entity "Room" as room {
+  *id : uuid <<PK>>
+  *house_id : uuid <<FK>>
+  --
+  *name : varchar(50)
+  floor : smallint
+  icon : varchar(30)
+}
+
+entity "DeviceType" as device_type {
+  *id : uuid <<PK>>
+  --
+  *name : varchar(50)
+  *category : enum('sensor','actuator','hybrid')
+  description : text
+  capabilities : jsonb
+  vendor : varchar(50)
+}
+
+entity "Device" as device {
+  *id : uuid <<PK>>
+  *type_id : uuid <<FK>>
+  *house_id : uuid <<FK>>
+  *room_id : uuid <<FK>>
+  --
+  *serial_number : varchar(100)
+  *name : varchar(100)
+  firmware_version : varchar(50)
+  status : enum('online','offline','error')
+  last_seen : timestamp
+  settings : jsonb
+  installation_date : date
+}
+
+entity "TelemetryData" as telemetry {
+  *id : uuid <<PK>>
+  *device_id : uuid <<FK>>
+  --
+  *timestamp : timestamp
+  *metric_type : varchar(50)
+  *value : float
+  unit : varchar(10)
+  additional_data : jsonb
+}
+
+entity "Module" as module {
+  *id : uuid <<PK>>
+  *house_id : uuid <<FK>>
+  --
+  *name : varchar(50)
+  *type : enum('security','climate','lighting')
+  status : varchar(20)
+  configuration : jsonb
+}
+
+entity "UserHouseAccess" as access {
+  *user_id : uuid <<PK>> <<FK>>
+  *house_id : uuid <<PK>> <<FK>>
+  --
+  access_level : enum('owner','admin','guest')
+  granted_at : timestamp
+}
+
+
+house ||--o{ room : "1:n"
+house ||--o{ device : "1:n"
+house ||--o{ module : "1:n"
+device_type ||--o{ device : "1:n"
+room ||--o{ device : "1:n"
+device ||--o{ telemetry : "1:n"
+
+user }o--|| access : "m:n"
+house }o--|| access : "m:n"
+
+
+
+@enduml

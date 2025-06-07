@@ -1,0 +1,44 @@
+@startuml
+title SmartHome Container Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+System_Boundary(SmartHomeSystem, "SmartHome System") {
+    Container(web_app, "Web Application", "React", "Пользовательский интерфейс для управления системой")
+    Container(mobile_app, "Mobile Application", "Android/iOS", "Удаленное управление и мониторинг")
+    Container(api_gateway, "API Gateway", "Node.js/Express", "Единая точка входа для всех запросов")
+    Container(auth_service, "Authentication Service", "Keycloak", "Управление пользователями и доступом")
+    Container(device_service, "Device Service", "Python", "Управление датчиками и исполнительными устройствами")
+    Container(integration_service, "Vendor Integration Service", "Java", "Интеграция с API производителей умных устройств")
+'    Container(data_service, "Data Service", "Java", "Обработка и анализ телеметрии")
+    Container(db, "Database", "PostgreSQL", "Хранение данных устройств и показаний")
+    Container(message_broker, "Message Broker", "MQTT", "Асинхронная коммуникация с устройствами")
+    Container(monitoring, "Monitoring System", "Grafana/Prometheus", "Визуализация метрик и алертинг")
+}
+
+Person(user, "User", "Владелец дома, управляющий системой через приложения")
+System_Ext(smart_ext_api, "Произваодители устройств", "API производителей умных устройств")
+
+Rel(user, web_app, "Использует", "HTTPS")
+Rel(user, mobile_app, "Использует", "HTTPS")
+Rel(web_app, api_gateway, "API запросы", "REST/HTTPS")
+Rel(mobile_app, api_gateway, "API запросы", "REST/HTTPS")
+Rel(api_gateway, auth_service, "Проверка токенов", "JWT")
+Rel(api_gateway, device_service, "Запросы управления", "gRPC")
+Rel(api_gateway, data_service, "Запросы данных", "gRPC")
+Rel(api_gateway, integration_service, "Интеграционные запросы", "REST/HTTPS")
+Rel(device_service, message_broker, "Публикация команд", "MQTT")
+Rel(message_broker, device_service, "Получение телеметрии", "MQTT")
+Rel(device_service, db, "Сохранение состояния", "SQL")
+Rel(integration_service, db, "Сохранение данных производителей", "SQL")
+Rel(integration_service, message_broker, "Отправка команд", "MQTT")
+Rel(message_broker, integration_service, "Получение событий", "MQTT")
+'Rel(data_service, db, "Запись/чтение данных", "SQL")
+'Rel(data_service, monitoring, "Экспорт метрик", "Prometheus")
+Rel(device_service, monitoring, "Отправка логов", "Loki")
+Rel(integration_service, monitoring, "Отправка метрик", "Prometheus")
+Rel(integration_service, smart_ext_api, "Отправка метрик", "Prometheus")
+
+@enduml

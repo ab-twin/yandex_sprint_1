@@ -1,0 +1,262 @@
+openapi: 3.0.4
+info:
+  title: Устройства и Телеметрия API
+  version: 1.0.0
+  description: API для управления устройствами и работы с телеметрией
+
+servers:
+  - url: http://api.smarthome.com
+    description: Production server
+
+paths:
+  # Управление устройствами
+  /api/v1/devices:
+    post:
+      tags:
+        - Devices
+      summary: Регистрация нового устройства
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCreate'
+      responses:
+        '201':
+          description: Устройство успешно зарегистрировано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '400':
+          description: Неверные данные устройства
+        '422':
+          description: Ошибки валидации
+
+  /api/v1/devices/{id}:
+    get:
+      tags:
+        - Devices
+      summary: Получение состояния устройства
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Состояние устройства
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '404':
+          description: Устройство не найдено
+
+  /api/v1/devices/{id}/firmware:
+    put:
+      tags:
+        - Devices
+      summary: Обновление прошивки устройства
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                firmware:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Прошивка успешно обновлена
+        '400':
+          description: Неверный файл прошивки
+        '404':
+          description: Устройство не найдено
+
+  /api/v1/devices/{id}/commands:
+    post:
+      tags:
+        - Devices
+      summary: Отправка команды на устройство
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                parameters:
+                  type: object
+      responses:
+        '200':
+          description: Команда успешно отправлена
+        '400':
+          description: Неверная команда
+        '404':
+          description: Устройство не найдено
+
+  # Телеметрия и аналитика
+  /api/v1/telemetry:
+    get:
+      tags:
+        - Telemetry
+      summary: Получение истории показаний
+      parameters:
+        - name: device_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: История телеметрии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryData'
+        '400':
+          description: Неверный запрос
+        '404':
+          description: Устройство не найдено
+
+
+  /api/v1/telemetry/alerts:
+    post:
+      tags:
+        - Telemetry
+      summary: Настройка алертов
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                metric:
+                  type: string
+                condition:
+                  type: string
+                threshold:
+                  type: number
+      responses:
+        '201':
+          description: Алерт успешно настроен
+        '400':
+          description: Неверные параметры алерта
+        '404':
+          description: Устройство не найдено
+
+  /api/v1/telemetry/stats:
+    get:
+      tags:
+        - Telemetry
+      summary: Получение агрегированной статистики
+      parameters:
+        - name: device_id
+          in: query
+          schema:
+            type: string
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [hour, day, week, month]
+      responses:
+        '200':
+          description: Статистические данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryData'
+        '400':
+          description: Неверные параметры запроса
+
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор устройства
+        type_id:
+          type: string
+          format: uuid
+          description: Идентификатор типа устройства
+        house_id:
+          type: string
+          format: uuid
+          description: Идентификатор дома, к которому привязано устройство
+        room_id:
+          type: string
+          format: uuid
+          description: Идентификатор комнаты, где расположено устройство
+      required:
+        - id
+        - type_id
+        - house_id
+        - room_id
+
+    DeviceCreate:
+      type: object
+      properties:
+        type_id:
+          type: string
+          format: uuid
+          description: Идентификатор типа устройства
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        house_id:
+          type: string
+          format: uuid
+          description: Идентификатор дома, к которому привязано устройство
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        room_id:
+          type: string
+          format: uuid
+          description: Идентификатор комнаты, где расположено устройство
+          example: "550e8400-e29b-41d4-a716-446655440002"
+      required:
+        - type_id
+        - house_id
+        - room_id
+
+    TelemetryData:
+      type: array
+      items:
+        type: object
+        properties:
+          timestamp:
+            type: string
+            format: date-time
+            description: Дата и время измерения
+            example: "2023-05-15T14:30:00Z"
+          value:
+            type: number
+            description: Значение измерения
+            example: 25.5
+          metric:
+            type: string
+            description: Название метрики
+            example: "temperature"
+        required:
+          - timestamp
+          - value
+          - metric

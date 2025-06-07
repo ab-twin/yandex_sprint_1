@@ -1,0 +1,30 @@
+@startuml
+title SmartHome Device Service: Code Level (Class Diagram)
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+
+class Device {
+  - id: str
+  - name: str
+  - firmware: FirmwareVersion
+  - status: DeviceStatus
+  + add()
+  + remove()
+  + update()
+  + execute_command()
+  + add_event_listener()
+  + get_data()
+}
+
+class DeviceCommandHandler {
+  + handle()
+  + _validate_command()
+  + _execute_on_device(device_id: str, cmd: Command)
+}
+
+DeviceCommandHandler --> Device
+
+@enduml
