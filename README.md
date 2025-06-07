@@ -162,22 +162,9 @@
 
 ### 2. Документация API
 
-#### 1. Управление устройствами (Device Service)
+[swagger.yaml](schemas%2Fswagger.yaml)
 
-API Endpoints [http]:
-
-- POST /api/v1/devices - регистрация устройства
-- GET /api/v1/devices/{id} - получение состояния
-- PUT /api/v1/devices/{id}/firmware - обновление прошивки
-- POST /api/v1/devices/{id}/commands - отправка команды
-
-2. Телеметрия и аналитика (Telemetry Service)
-
-API Endpoints [http]:
-
-- GET /api/v1/telemetry?device_id=X - история показаний
-- POST /api/v1/telemetry/alerts - настройка алертов
-- GET /api/v1/telemetry/stats - агрегированная статистика
+Так же добавил в сборку swagger-ui, если стартануть docker-compose документация будет доступна тут: http://localhost:8082/
 
 # Задание 5. Работа с docker и docker-compose
 
